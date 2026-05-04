@@ -1,4 +1,5 @@
 #include "shape_core.hpp"
+#include "custom_shape.hpp"
 #include <cmath>
 #include <Eigen/Dense>
 #include <stdexcept>
@@ -327,8 +328,18 @@ void shape_eval_local_phi_grad(
         return;
     }
 
+    // ------------------------
+    // shape_id = 6 : Custom user shape
+    // ------------------------
+    else if (shape_id == 6)
+    {
+        Matrix3d hess_dummy;
+        custom_shape_eval_local(y, params, phi, grad_phi, hess_dummy);
+        return;
+    }
+
     else
-        fail("Unknown shape_id (valid: 1–5).");
+        fail("Unknown shape_id (valid: 1..6).");
 }
 
 void shape_eval_global_xa_phi_grad(
@@ -794,8 +805,16 @@ void shape_eval_local(
         return;
     }
 
+    // ------------------------
+    // shape_id = 6 : Custom user shape
+    // ------------------------
+    else if (shape_id == 6) {
+        custom_shape_eval_local(y, params, phi, grad_phi, hess_phi);
+        return;
+    }
+
     else {
-        fail("Unknown shape_id. Implemented: 1..5.");
+        fail("Unknown shape_id. Implemented: 1..6.");
     }
 }
 

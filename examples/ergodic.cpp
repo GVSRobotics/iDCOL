@@ -291,7 +291,10 @@ int main() {
     auto se   = idcol::make_se(n, a, b, c, optr);
     auto sec  = idcol::make_sec(n, r, h, optr);
 
-    std::vector<idcol::ShapeSpec> shapes = {poly, tc, se, sec};
+    Eigen::VectorXd custom_params(0);
+    auto custom = idcol::make_custom(custom_params, optr);
+
+    std::vector<idcol::ShapeSpec> shapes = {poly, tc, se, sec, custom};
 
     // -------------------------
     // Pass A: TIMING ONLY
@@ -341,6 +344,8 @@ int main() {
         run_case(se, se, bo);      // examples
         run_case(se, sec, bo);
         run_case(sec, sec, bo);
+        run_case(custom, custom, bo);
+        run_case(custom, poly, bo);
     }
 
     return 0;

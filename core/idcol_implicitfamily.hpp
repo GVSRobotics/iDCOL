@@ -63,6 +63,7 @@ inline double default_Lscale(const Eigen::VectorXd& b)
 // 3 truncated cone
 // 4 superellipsoid
 // 5 superelliptic cylinder
+// 6 custom shape (implemented in core/custom_shape.hpp)
 //
 
 // -------------------- Sphere --------------------
@@ -182,6 +183,20 @@ inline ShapeSpec make_sec(double n, double r, double h,
     s.name = "sec";
     s.params.resize(3);
     s.params << n, r, h;
+
+    s.bounds = ::compute_radial_bounds_local(s.shape_id, s.params, opt);
+    return s;
+}
+
+// -------------------- Custom shape --------------------
+inline ShapeSpec make_custom(const Eigen::Ref<const Eigen::VectorXd>& params,
+                             const ::RadialBoundsOptions& opt = {},
+                             const std::string& name = "custom")
+{
+    ShapeSpec s;
+    s.shape_id = 6;
+    s.name = name;
+    s.params = params;
 
     s.bounds = ::compute_radial_bounds_local(s.shape_id, s.params, opt);
     return s;
