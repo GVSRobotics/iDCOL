@@ -312,7 +312,7 @@ int main() {
                     run_case(s1, s2, bo);
         }
 
-        // DCOL comparison cases (ellipsoid is n=1 in your convention)
+        // DCOL comparison cases (ellipsoid is n=1 in idcol convention)
         n = 1;
         auto ellip = idcol::make_se(n, a, b, c, optr);
 
