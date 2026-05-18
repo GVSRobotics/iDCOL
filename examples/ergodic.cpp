@@ -117,8 +117,11 @@ static BenchResult run_case(const idcol::ShapeSpec& s1, const idcol::ShapeSpec& 
     // Contact pair 
     ContactPair pair(s1, s2, opt, sopt);
 
-    const double r_min = 0.1 * std::min(s1.bounds.Rin,  s2.bounds.Rin);
-    const double r_max = 2.0 * std::max(s1.bounds.Rout, s2.bounds.Rout);
+    // const double r_min = 0.1 * std::min(s1.bounds.Rin,  s2.bounds.Rin);
+    // const double r_max = 2.0 * std::max(s1.bounds.Rout, s2.bounds.Rout);
+
+    const double r_min = 0.05;
+    const double r_max = 2.0;
 
     const int N = static_cast<int>(std::round(bo.t_max / bo.dt)) + 1;
 
