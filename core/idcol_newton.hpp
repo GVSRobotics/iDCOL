@@ -56,7 +56,7 @@ struct NewtonResult {
     Vector6d F = Vector6d::Zero();
     Matrix6d J = Matrix6d::Zero();
     Matrix6d T = Matrix6d::Zero(); // T = -(J^-1)*G to be implemented later
-    
+
     bool converged = false;
     int  iters_used = 0;
     int  attempts_used = 1;

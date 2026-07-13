@@ -3,6 +3,50 @@
 
 namespace idcol {
 
+// Hand-written partial-pivoting Gaussian elimination for a general
+// (non-symmetric) 6x6 system A*x = b, done in place on a local copy of A.
+// Eigen::PartialPivLU<Matrix6d> carries generic machinery (permutation
+// bookkeeping, determinant-sign tracking) that's pure overhead at a fixed
+// 6x6 next to a flat elimination loop; this is the same specialization the
+// Julia port's `solve_lu6` uses, measured there at ~1.5x faster than the
+// generic solve for this exact system, with identical (partial, row-only)
+// pivoting so the chosen pivot -- and hence the Newton iterate path -- is
+// unchanged. Returns false (instead of Eigen's silent NaN/Inf) on an
+// exactly-zero pivot; not a behavior change since callers already gate on
+// `dz_hat.allFinite()`.
+static inline bool solve_lu6(Matrix6d A, const Vector6d& b, Vector6d& x) {
+    x = b;
+    for (int k = 0; k < 5; ++k) {
+        int piv = k;
+        double amax = std::abs(A(k, k));
+        for (int i = k + 1; i < 6; ++i) {
+            const double a = std::abs(A(i, k));
+            if (a > amax) { amax = a; piv = i; }
+        }
+        if (piv != k) {
+            A.row(k).swap(A.row(piv));
+            std::swap(x(k), x(piv));
+        }
+        const double pivval = A(k, k);
+        if (pivval == 0.0) return false;
+        const double invp = 1.0 / pivval;
+        for (int i = k + 1; i < 6; ++i) {
+            const double f = A(i, k) * invp;
+            if (f != 0.0) {
+                for (int j = k; j < 6; ++j) A(i, j) -= f * A(k, j);
+                x(i) -= f * x(k);
+            }
+        }
+    }
+    if (A(5, 5) == 0.0) return false;
+    for (int k = 5; k >= 0; --k) {
+        double s = x(k);
+        for (int j = k + 1; j < 6; ++j) s -= A(k, j) * x(j);
+        x(k) = s / A(k, k);
+    }
+    return true;
+}
+
 NewtonResult solve_idcol_newton(
     const ProblemData& P,
     const Vector3d& x0,
@@ -48,7 +92,6 @@ NewtonResult solve_idcol_newton(
         iters_used = 0;
 
         // Reuse decomposition objects and temporaries to avoid repeated allocations
-        Eigen::PartialPivLU<Matrix6d> lu;
         Eigen::LLT<Matrix6d> llt;
         Matrix6d A;
 
@@ -73,10 +116,9 @@ NewtonResult solve_idcol_newton(
             Vector6d dz_hat;
             bool have_step = false;
 
-            lu.compute(JD);
-            dz_hat = lu.solve(-F);
+            const bool ok_lu = solve_lu6(JD, -F, dz_hat);
 
-            if (dz_hat.allFinite() && dz_hat.squaredNorm() <= (opt.dz_hat_norm_max * opt.dz_hat_norm_max)) {
+            if (ok_lu && dz_hat.allFinite() && dz_hat.squaredNorm() <= (opt.dz_hat_norm_max * opt.dz_hat_norm_max)) {
                 have_step = true;
             }
 
@@ -187,10 +229,10 @@ NewtonResult solve_idcol_newton(
                 double mu = 1e-3;
 
                 for (int tr = 0; tr < 10; ++tr) {
-                    Matrix6d A = JTJ;
+                    A = JTJ;
                     A.diagonal().array() += mu;
 
-                    Eigen::LLT<Matrix6d> llt(A);
+                    llt.compute(A);
                     if (llt.info() != Eigen::Success) {
                         mu *= 10.0;
                         continue;

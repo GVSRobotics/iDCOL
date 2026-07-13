@@ -106,8 +106,23 @@ SolveResult idcol_solve(const SolveData& S,
 
     SolveResult out;
 
-    // Work on a local copy because we overwrite P.g2 for the surrogate problem
-    ProblemData P = P_in;
+    // Work on a local copy because we overwrite P.g for the surrogate problem.
+    // Reuse a per-recursion-depth scratch object instead of a fresh ProblemData
+    // every call: Eigen's VectorXd::operator= only reallocates when the size
+    // changes, and params1/params2 keep the same size across the millions of
+    // solve() calls a benchmark/simulation loop makes for a given shape pair,
+    // so after the first call at each depth this copy is allocation-free.
+    // Indexed by solve_depth (capped) rather than a single shared static so
+    // the recursive continuation calls below don't clobber the caller's scratch.
+    constexpr int kMaxPooledDepth = 4;
+    static thread_local ProblemData P_pool[kMaxPooledDepth];
+    ProblemData& P = P_pool[std::min(solve_depth, kMaxPooledDepth) - 1];
+
+    P.shape_id1 = P_in.shape_id1;
+    P.shape_id2 = P_in.shape_id2;
+    P.params1   = P_in.params1;
+    P.params2   = P_in.params2;
+    P.g         = P_in.g;
 
     // ------------------------------------------------------------------
     // Unit scaling (NOT surrogate scaling)

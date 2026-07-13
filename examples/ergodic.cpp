@@ -310,13 +310,13 @@ int main() {
         bo.t_max = 100.0;
         bo.dt    = 1e-4;
 
-        for (bool warm : {false, true}) {
-            bo.use_warm_start = warm;
-            std::cout << "\n=== PASS A (timing) warm_start=" << warm << " ===\n";
-            for (const auto& s1 : shapes)
-                for (const auto& s2 : shapes)
-                    run_case(s1, s2, bo);
-        }
+        // for (bool warm : {false, true}) {
+        //     bo.use_warm_start = warm;
+        //     std::cout << "\n=== PASS A (timing) warm_start=" << warm << " ===\n";
+        //     for (const auto& s1 : shapes)
+        //         for (const auto& s2 : shapes)
+        //             run_case(s1, s2, bo);
+        // }
 
         // DCOL comparison cases (ellipsoid is n=1 in idcol convention)
         n = 1;
@@ -334,22 +334,22 @@ int main() {
     // -------------------------
     // Pass B: DIAGNOSTICS (SVD, optional CSV), subsampled
     // -------------------------
-    {
-        BenchOptions bo;
-        bo.use_warm_start = false;
-        bo.write_csv = false;      // set true only if you really want per-sample outputs
-        bo.compute_svd = true;
-        bo.svd_stride  = 1000;     // SVD every 1000 successful solves (change as you like)
-        bo.t_max = 100.0;
-        bo.dt    = 1e-4;
+    // {
+    //     BenchOptions bo;
+    //     bo.use_warm_start = false;
+    //     bo.write_csv = false;      // set true only if you really want per-sample outputs
+    //     bo.compute_svd = true;
+    //     bo.svd_stride  = 1000;     // SVD every 1000 successful solves (change as you like)
+    //     bo.t_max = 100.0;
+    //     bo.dt    = 1e-4;
 
-        std::cout << "\n=== PASS B (diagnostics) ===\n";
-        run_case(se, se, bo);      // examples
-        run_case(se, sec, bo);
-        run_case(sec, sec, bo);
-        run_case(custom, custom, bo);
-        run_case(custom, poly, bo);
-    }
+    //     std::cout << "\n=== PASS B (diagnostics) ===\n";
+    //     run_case(se, se, bo);      // examples
+    //     run_case(se, sec, bo);
+    //     run_case(sec, sec, bo);
+    //     run_case(custom, custom, bo);
+    //     run_case(custom, poly, bo);
+    // }
 
     return 0;
 }
