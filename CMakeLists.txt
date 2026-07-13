@@ -4,6 +4,8 @@ project(idcol LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(Eigen3 REQUIRED NO_MODULE)
+
 # ---------- Core sources ----------
 set(IDCOL_CORE
     core/idcol_solve.cpp
@@ -19,8 +21,9 @@ function(add_idcol_example tgt src)
 
     target_include_directories(${tgt} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/external/eigen
     )
+
+    target_link_libraries(${tgt} PRIVATE Eigen3::Eigen)
 
     if (MSVC)
         target_compile_options(${tgt} PRIVATE $<$<CONFIG:Release>:/O2 /DNDEBUG>)

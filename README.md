@@ -128,22 +128,11 @@ Superelliptic cylinder.
 - `h` : half-height  
 - `n` : shape exponent
 ---
-## Getting the source
-
-This repository uses Git submodules.
-
-After cloning, initialize dependencies with:
-
-```bash
-git submodule update --init --recursive
-```
----
-
 ## Requirements
 
 * CMake (>= 3.16)
 * A C++17-compatible compiler
-* Eigen (included as a submodule)
+* Eigen3, discoverable via CMake's `find_package(Eigen3)` (e.g. installed through [vcpkg](https://vcpkg.io/), your system package manager, or any other install that provides `Eigen3Config.cmake`)
 * (Optional) MATLAB with C++17 MEX support
 
 ---
@@ -160,9 +149,11 @@ cmake --build build
 ### Windows (Visual Studio)
 
 ```bash
-cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="<path to your Eigen3 install>"
 cmake --build build --config Release
 ```
+
+If CMake can't find Eigen3 automatically, pass its install prefix via `-DCMAKE_PREFIX_PATH` (for a vcpkg install this is typically `<vcpkg root>/installed/x64-windows`).
 
 Executables are generated in:
 
