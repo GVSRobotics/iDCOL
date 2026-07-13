@@ -2,8 +2,13 @@ function build_mex()
     thisFile = mfilename('fullpath');
     rootDir  = fileparts(thisFile);
 
+    eigenDir = getenv('EIGEN3_INCLUDE_DIR');
+    if isempty(eigenDir)
+        eigenDir = 'C:/vcpkg/installed/x64-windows/include/eigen3';
+    end
+
     inc1  = ['-I' rootDir];
-    inc2  = ['-I' fullfile(rootDir,'external','eigen')];
+    inc2  = ['-I' eigenDir];
 
     outd = fullfile(rootDir,'mex');
     if ~exist(outd,'dir'), mkdir(outd); end
