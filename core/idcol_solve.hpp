@@ -42,9 +42,9 @@ struct SolveResult {
 
 // Main API
 SolveResult idcol_solve(const SolveData& S,
-                        std::optional<Guess> user_guess = std::nullopt,
-                        NewtonOptions opt_in = NewtonOptions{},
-                        SurrogateOptions sopt = SurrogateOptions{});
+                        const std::optional<Guess>& user_guess = std::nullopt,
+                        const NewtonOptions& opt_in = NewtonOptions{},
+                        const SurrogateOptions& sopt = SurrogateOptions{});
 
 // Convenience overloads
 SolveResult idcol_solve(const SolveData& S, const NewtonOptions& opt);

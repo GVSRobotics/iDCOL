@@ -87,9 +87,9 @@ static void map_solution_to_original(NewtonResult& res, double scale_factor) {
 // ---------------- implementation ----------------
 
 SolveResult idcol_solve(const SolveData& S,
-                        std::optional<Guess> user_guess,
-                        NewtonOptions opt_in,
-                        SurrogateOptions sopt)
+                        const std::optional<Guess>& user_guess,
+                        const NewtonOptions& opt_in,
+                        const SurrogateOptions& sopt)
 {
     const ProblemData& P_in = S.P;
     const RadialBounds& bounds1 = S.bounds1;
