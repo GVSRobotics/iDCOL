@@ -13,8 +13,14 @@ function build_mex()
     outd = fullfile(rootDir,'mex');
     if ~exist(outd,'dir'), mkdir(outd); end
 
-    % C++17 flag (compiler-dependent)
-    if ispc
+    % C++17 flag (compiler-dependent). The core headers use std::optional,
+    % so this must actually take effect -- checking ispc alone is wrong on
+    % Windows when MATLAB is configured to use MinGW (GNU) rather than MSVC
+    % for MEX: MinGW's compiler doesn't understand MSVC's /std:c++17 syntax
+    % and silently ignores it, leaving C++17 off and the build failing with
+    % "'optional' in namespace 'std' does not name a template type".
+    cc = mex.getCompilerConfigurations('C++','Selected');
+    if ispc && contains(cc.Manufacturer, 'Microsoft', 'IgnoreCase', true)
         cxx17 = 'COMPFLAGS=$COMPFLAGS /std:c++17';
     else
         cxx17 = 'CXXFLAGS=$CXXFLAGS -std=c++17';

@@ -53,8 +53,8 @@ params_sec = [n; r; h];
 optr = struct();
 optr.num_starts = 1000;
 
-% shape_id mapping from your C++:
-% 2 polytope, 3 superellipsoid, 4 superelliptic cylinder, 5 truncated cone
+% shape_id mapping from your C++ (core/shape_core.cpp):
+% 1 sphere, 2 polytope, 3 truncated cone, 4 superellipsoid, 5 superelliptic cylinder
 bounds_poly = radial_bounds_mex(2, params_poly, optr);
 bounds_tc   = radial_bounds_mex(3, params_tc,   optr);
 bounds_se   = radial_bounds_mex(4, params_se,   optr);

@@ -7,13 +7,11 @@ namespace idcol {
 // (non-symmetric) 6x6 system A*x = b, done in place on a local copy of A.
 // Eigen::PartialPivLU<Matrix6d> carries generic machinery (permutation
 // bookkeeping, determinant-sign tracking) that's pure overhead at a fixed
-// 6x6 next to a flat elimination loop; this is the same specialization the
-// Julia port's `solve_lu6` uses, measured there at ~1.5x faster than the
-// generic solve for this exact system, with identical (partial, row-only)
-// pivoting so the chosen pivot -- and hence the Newton iterate path -- is
-// unchanged. Returns false (instead of Eigen's silent NaN/Inf) on an
-// exactly-zero pivot; not a behavior change since callers already gate on
-// `dz_hat.allFinite()`.
+// 6x6 next to a flat elimination loop. Uses the same (partial, row-only)
+// pivoting as Eigen, so the chosen pivot -- and hence the Newton iterate
+// path -- is unchanged. Returns false (instead of Eigen's silent NaN/Inf)
+// on an exactly-zero pivot; not a behavior change since callers already
+// gate on `dz_hat.allFinite()`.
 static inline bool solve_lu6(Matrix6d A, const Vector6d& b, Vector6d& x) {
     x = b;
     for (int k = 0; k < 5; ++k) {

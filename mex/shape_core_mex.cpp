@@ -11,6 +11,9 @@
 //   out.grad   (3x1 for local*, 4x1 for global_xa*; ordering [dphi/dx; dphi/dalpha])
 //   out.H      (only for "local" and "global_xa")
 //
+// "global_xa_phi_grad" additionally accepts x as a 3xN batch of points
+// (looped in C++, one MEX call): out.phi is 1xN, out.grad is 4xN.
+//
 // Build example (adjust paths/files):
 //   mex -v CXXFLAGS="\$CXXFLAGS -std=c++17 -O3" -I<eigen> -I<include_root> ...
 //       shape_core_mex.cpp core/shape_core.cpp
@@ -77,6 +80,29 @@ static Eigen::Matrix4d get_T44(const mxArray* a, const char* name) {
     return T;
 }
 
+// Accepts either a single 3-element point (any orientation) or a 3xN batch
+// of points, returned as a 3xN Eigen matrix (N=1 for the single-point case).
+static Eigen::MatrixXd get_points3xN(const mxArray* a, const char* name) {
+    require(a && is_real_double(a),
+            "shape_mex:badArg", (std::string(name) + " must be a real double array.").c_str());
+    const mwSize rows = mxGetM(a);
+    const mwSize cols = mxGetN(a);
+    const double* p = mxGetPr(a);
+
+    if (rows == 3) {
+        Eigen::MatrixXd P(3, (int)cols);
+        for (mwSize c = 0; c < cols; ++c)
+            for (int r = 0; r < 3; ++r)
+                P(r, (int)c) = p[r + 3 * c];
+        return P;
+    }
+    require(mxGetNumberOfElements(a) == 3, "shape_mex:badArg",
+            (std::string(name) + " must be 3xN, or a 3-element point.").c_str());
+    Eigen::MatrixXd P(3, 1);
+    P(0, 0) = p[0]; P(1, 0) = p[1]; P(2, 0) = p[2];
+    return P;
+}
+
 static mxArray* make_struct_local(double phi, const Eigen::Vector3d& grad, const Eigen::Matrix3d* H) {
     if (H) {
         const char* fields[] = {"phi","grad","H"};
@@ -135,6 +161,29 @@ static mxArray* make_struct_global(double phi, const Eigen::Vector4d& grad, cons
     }
 }
 
+// phi: 1xN, grad: 4xN (N=1 degenerates to the same shape make_struct_global
+// produces for a single point: phi a 1x1 scalar, grad a 4x1 vector).
+static mxArray* make_struct_global_batch(const Eigen::RowVectorXd& phi, const Eigen::MatrixXd& grad) {
+    const char* fields[] = {"phi","grad"};
+    mxArray* S = mxCreateStructMatrix(1,1,2,fields);
+
+    const int N = (int)phi.size();
+
+    mxArray* phimx = mxCreateDoubleMatrix(1, N, mxREAL);
+    double* pphi = mxGetPr(phimx);
+    for (int i = 0; i < N; ++i) pphi[i] = phi(i);
+    mxSetField(S, 0, "phi", phimx);
+
+    mxArray* gmx = mxCreateDoubleMatrix(4, N, mxREAL);
+    double* pg = mxGetPr(gmx);
+    for (int c = 0; c < N; ++c)
+        for (int r = 0; r < 4; ++r)
+            pg[r + 4 * c] = grad(r, c);
+    mxSetField(S, 0, "grad", gmx);
+
+    return S;
+}
+
 // -------------------- gateway --------------------
 
 void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
@@ -171,19 +220,27 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
 
     if (cmd == "global_xa_phi_grad") {
         require(nrhs == 6, "shape_mex:usage",
-                "Usage: out = shape_core_mex('global_xa_phi_grad', g, x, alpha, shape_id, params)");
+                "Usage: out = shape_core_mex('global_xa_phi_grad', g, x, alpha, shape_id, params)\n"
+                "  x may be a single 3-element point or a 3xN batch of points.");
         Eigen::Matrix4d g = get_T44(prhs[1], "g");
-        Eigen::Vector3d x = get_vec3(prhs[2], "x");
+        Eigen::MatrixXd X = get_points3xN(prhs[2], "x");
         double alpha = get_double_scalar(prhs[3], "alpha");
         int shape_id = get_int_scalar(prhs[4], "shape_id");
         Eigen::VectorXd params = get_vecN(prhs[5], "params");
 
-        double phi = 0.0;
-        Eigen::Vector4d grad = Eigen::Vector4d::Zero();
-        // NOTE: call your renamed function:
-        shape_eval_global_xa_phi_grad(g, x, alpha, shape_id, params, phi, grad);
+        const int N = (int)X.cols();
+        Eigen::RowVectorXd phi(N);
+        Eigen::MatrixXd grad(4, N);
 
-        plhs[0] = make_struct_global(phi, grad, nullptr);
+        for (int k = 0; k < N; ++k) {
+            double phik = 0.0;
+            Eigen::Vector4d gradk = Eigen::Vector4d::Zero();
+            shape_eval_global_xa_phi_grad(g, X.col(k), alpha, shape_id, params, phik, gradk);
+            phi(k) = phik;
+            grad.col(k) = gradk;
+        }
+
+        plhs[0] = make_struct_global_batch(phi, grad);
         return;
     }
 
