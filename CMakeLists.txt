@@ -65,6 +65,7 @@ function(add_idcol_example tgt src)
 endfunction()
 
 # ---------- Executables ----------
+add_idcol_example(idcol_test  examples/test.cpp)
 add_idcol_example(idcol_example  examples/main.cpp)
 add_idcol_example(idcol_ergodic  examples/ergodic.cpp)
 add_idcol_example(idcol_scaling  examples/scaling_polytope.cpp)
