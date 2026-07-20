@@ -342,7 +342,6 @@ void shape_eval_local_phi_grad(
         fail("Unknown shape_id (valid: 1..6).");
 }
 
-/*
 void shape_eval_global_xa_phi_grad(
     const Matrix4d& g,
     const Vector3d& x,
@@ -382,7 +381,7 @@ void shape_eval_global_xa_phi_grad(
     // pack
     grad.segment<3>(0) = grad_x;
     grad(3) = grad_alpha;
-}*/
+}
 
 void shape_eval_local(
     const Vector3d& y,
@@ -819,7 +818,6 @@ void shape_eval_local(
     }
 }
 
-/*
 void shape_eval_global_xa(
     const Matrix4d& g,
     const Vector3d& x,
@@ -875,85 +873,4 @@ void shape_eval_global_xa(
     H.block<1,3>(3,0) = H_xa.transpose();
     H(3,3) = H_aa;
 }
-*/
 
-void shape_eval_global_xa_phi_grad(
-    const Matrix4d& g,
-    const Vector3d& x,
-    double alpha,
-    int shape_id,
-    const Eigen::VectorXd& params,
-    double& phi,
-    Vector4d& grad)
-{
-    if (alpha <= 0.0) throw std::runtime_error("shape_eval_global_ax_phi_grad: alpha must be > 0.");
-
-    // Use Map/Ref equivalents where possible or rely on auto for block views
-    auto R = g.block<3,3>(0,0);
-    auto r = g.block<3,1>(0,3);
-
-    Vector3d y;
-    y.noalias() = R.transpose() * (x - r) / alpha; // OPTIMIZATION: Zero-copy transform
-
-    double phi_local = 0.0;
-    Vector3d grad_y = Vector3d::Zero();
-    shape_eval_local_phi_grad(y, shape_id, params, phi_local, grad_y);
-
-    phi = phi_local;
-    const double inv_alpha = 1.0 / alpha;
-
-    // OPTIMIZATION: Write directly into the output vector to avoid copies
-    grad.head<3>().noalias() = inv_alpha * (R * grad_y);
-    grad(3) = -inv_alpha * y.dot(grad_y);
-}
-
-void shape_eval_global_xa(
-    const Matrix4d& g,
-    const Vector3d& x,
-    double alpha,
-    int shape_id,
-    const VectorXd& params,
-    double& phi,
-    Vector4d& grad,
-    Matrix4d& H)
-{
-    if (alpha <= 0.0) throw std::runtime_error("shape_eval_global_ax: alpha must be > 0.");
-
-    auto R = g.block<3,3>(0,0);
-    auto r = g.block<3,1>(0,3);
-
-    Vector3d y;
-    y.noalias() = R.transpose() * (x - r) / alpha;
-
-    double phi_local;
-    Vector3d grad_y;
-    Matrix3d H_y;
-    shape_eval_local(y, shape_id, params, phi_local, grad_y, H_y);
-
-    phi = phi_local;
-    
-    const double inv_alpha = 1.0 / alpha;
-    const double inv_alpha2 = inv_alpha * inv_alpha;
-
-    // Gradient packing
-    grad.head<3>().noalias() = inv_alpha * (R * grad_y);
-    grad(3) = -inv_alpha * y.dot(grad_y);
-
-    // ==========================================
-    // OPTIMIZATION: Direct Hessian construction
-    // Avoids 3 separate Matrix3d/Vector3d intermediate allocations
-    // ==========================================
-    
-    // H_xx
-    H.block<3,3>(0,0).noalias() = inv_alpha2 * (R * H_y * R.transpose());
-
-    // Temporary scalar to save a double-evaluation of H_y * y
-    Vector3d Hy = H_y * y; 
-
-    // H_xa
-    H.block<3,1>(0,3).noalias() = -inv_alpha2 * (R * (Hy + grad_y));
-    H.block<1,3>(3,0) = H.block<3,1>(0,3).transpose();
-
-    // H_aa
-    H(3,3) = inv_alpha2 * (y.dot(Hy) + 2.0 * y.dot(grad_y));
-}
