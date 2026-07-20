@@ -27,3 +27,9 @@
 
 .obsidian/
 Vault/
+
+# rebuttal comparison experiment (throwaway, not part of the library)
+/experiments/
+
+# ad-hoc local example for exploring the rebuttal geometry, not a permanent library example
+/examples/box_cylinder_ergodic.cpp

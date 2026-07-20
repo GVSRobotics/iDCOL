@@ -91,6 +91,9 @@ struct BenchOptions {
 struct BenchResult {
     double avg_us = 0.0;
     double median_us = 0.0;
+    double p25_us = 0.0;
+    double p75_us = 0.0;
+    double p95_us = 0.0;
     double stddev_us = 0.0;
     double avg_iters = 0.0;
     double min_sigma_ratio = 0.0;
@@ -98,6 +101,16 @@ struct BenchResult {
     std::size_t succ = 0;
     std::size_t failed = 0;
 };
+
+// Nearest-rank percentile on an already-sorted vector (p in [0,100]).
+static double percentile_sorted(const std::vector<double>& sorted_v, double p) {
+    if (sorted_v.empty()) return 0.0;
+    const std::size_t n = sorted_v.size();
+    std::size_t idx = static_cast<std::size_t>(std::ceil(p / 100.0 * static_cast<double>(n)));
+    idx = std::min(idx, n);
+    idx = (idx == 0) ? 0 : idx - 1;
+    return sorted_v[idx];
+}
 
 static BenchResult run_case(const idcol::ShapeSpec& s1, const idcol::ShapeSpec& s2, const BenchOptions& bo)
 {
@@ -214,6 +227,9 @@ static BenchResult run_case(const idcol::ShapeSpec& s1, const idcol::ShapeSpec& 
 
         std::sort(durations_us.begin(), durations_us.end());
         R.median_us = durations_us[durations_us.size() / 2]; // N is odd in your setup
+        R.p25_us = percentile_sorted(durations_us, 25.0);
+        R.p75_us = percentile_sorted(durations_us, 75.0);
+        R.p95_us = percentile_sorted(durations_us, 95.0);
 
         double sq = 0.0;
         for (double v : durations_us) sq += (v - R.avg_us) * (v - R.avg_us);
@@ -235,6 +251,9 @@ static BenchResult run_case(const idcol::ShapeSpec& s1, const idcol::ShapeSpec& 
           << (bo.use_warm_start ? " [warm]" : " [cold]")
           << " | avg_us=" << R.avg_us
           << " | median_us=" << R.median_us
+          << " | p25_us=" << R.p25_us
+          << " | p75_us=" << R.p75_us
+          << " | p95_us=" << R.p95_us
           << " | stddev_us=" << R.stddev_us
           << " | avg_iters=" << R.avg_iters;
 
@@ -297,7 +316,7 @@ int main() {
     Eigen::VectorXd custom_params(0);
     auto custom = idcol::make_custom(custom_params, optr);
 
-    std::vector<idcol::ShapeSpec> shapes = {poly, tc, se, sec, custom};
+    std::vector<idcol::ShapeSpec> shapes = {poly, tc, se, sec};
 
     // -------------------------
     // Pass A: TIMING ONLY
@@ -310,25 +329,25 @@ int main() {
         bo.t_max = 100.0;
         bo.dt    = 1e-4;
 
-        // for (bool warm : {false, true}) {
-        //     bo.use_warm_start = warm;
-        //     std::cout << "\n=== PASS A (timing) warm_start=" << warm << " ===\n";
-        //     for (const auto& s1 : shapes)
-        //         for (const auto& s2 : shapes)
-        //             run_case(s1, s2, bo);
-        // }
-
-        // DCOL comparison cases (ellipsoid is n=1 in idcol convention)
-        n = 1;
-        auto ellip = idcol::make_se(n, a, b, c, optr);
-
         for (bool warm : {false, true}) {
             bo.use_warm_start = warm;
-            std::cout << "\n=== PASS A (timing, DCOL subset) warm_start=" << warm << " ===\n";
-            run_case(poly,  poly,  bo);
-            run_case(poly,  ellip, bo);
-            run_case(ellip, ellip, bo);
+            std::cout << "\n=== PASS A (timing) warm_start=" << warm << " ===\n";
+            for (const auto& s1 : shapes)
+                for (const auto& s2 : shapes)
+                    run_case(s1, s2, bo);
         }
+
+        // // DCOL comparison cases (ellipsoid is n=1 in idcol convention)
+        // n = 1;
+        // auto ellip = idcol::make_se(n, a, b, c, optr);
+
+        // for (bool warm : {false, true}) {
+        //     bo.use_warm_start = warm;
+        //     std::cout << "\n=== PASS A (timing, DCOL subset) warm_start=" << warm << " ===\n";
+        //     run_case(poly,  poly,  bo);
+        //     run_case(poly,  ellip, bo);
+        //     run_case(ellip, ellip, bo);
+        // }
     }
 
     // -------------------------
