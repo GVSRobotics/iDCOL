@@ -7,6 +7,14 @@ void shape_eval_local_phi( //phi only, no gradient/Hessian
     const Eigen::VectorXd& params,
     double& phi);
 
+void shape_eval_global_phi( //phi only, no gradient/Hessian
+    const Eigen::Matrix4d& g,
+    const Eigen::Vector3d& x,
+    double alpha,
+    int shape_id,
+    const Eigen::VectorXd& params,
+    double& phi);
+
 void shape_eval_local_phi_grad( //no Hessian
     const Eigen::Vector3d& y,
     int shape_id,
@@ -14,6 +22,8 @@ void shape_eval_local_phi_grad( //no Hessian
     double& phi,
     Eigen::Vector3d& grad_phi);
 
+// "_xa_" = derivatives are taken wrt x (world position) and alpha (scale),
+// as opposed to the local functions' derivatives wrt y (local position).
 void shape_eval_global_xa_phi_grad( //no Hessian
     const Eigen::Matrix4d& g,
     const Eigen::Vector3d& x,

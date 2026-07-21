@@ -233,6 +233,25 @@ void shape_eval_local_phi(
         fail("Unknown shape_id (valid: 1..6).");
 }
 
+// phi only, no gradient/Hessian. phi is invariant under the local/global
+// transform, so this is just shape_eval_local_phi at y = R'(x-r)/alpha.
+void shape_eval_global_phi(
+    const Matrix4d& g,
+    const Vector3d& x,
+    double alpha,
+    int shape_id,
+    const VectorXd& params,
+    double& phi)
+{
+    if (alpha <= 0.0) throw std::runtime_error("shape_eval_global_phi: alpha must be > 0.");
+
+    Matrix3d R = g.block<3,3>(0,0);
+    Vector3d r = g.block<3,1>(0,3);
+    Vector3d y = R.transpose() * (x - r) / alpha;
+
+    shape_eval_local_phi(y, shape_id, params, phi);
+}
+
 void shape_eval_local_phi_grad(
     const Vector3d& y,
     int shape_id,
