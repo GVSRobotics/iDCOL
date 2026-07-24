@@ -10,21 +10,21 @@
      Tokens
   --------------------------------------------------------------- */
   :root {
-    --ink:            #10151a;
-    --surface:        #171e24;
-    --surface-raised: #1c242b;
-    --paper:          #edf1ef;
-    --surface-light:  #ffffff;
-    --surface-light-raised: #f5f7f5;
-    --graphite-soft:  #8a969c;
-    --hair:           #2a333a;      /* hairline border, dark */
-    --hair-light:     #d7ddda;      /* hairline border, light */
-    --text:           #e7ebe9;
-    --text-dim:       #a7b1ae;
-    --text-light:     #141a19;
-    --text-light-dim: #4c5754;
-    --contact:        #d9662b;      /* warm accent: contact points, CTAs */
-    --field:          #3e9c97;      /* cool accent: gradients / level sets */
+    --ink:            #0b1220;      /* blueprint navy, not near-black */
+    --surface:        #121b2e;
+    --surface-raised: #182541;
+    --paper:          #f6f0e3;      /* warm drafting-paper cream */
+    --surface-light:  #fffdf7;
+    --surface-light-raised: #efe6d2;
+    --graphite-soft:  #9c8d74;      /* warm graphite / pencil lead */
+    --hair:           #263a5c;      /* hairline border, dark (blue-tinted) */
+    --hair-light:     #ddd0b4;      /* hairline border, light (warm-tinted) */
+    --text:           #eef1f9;
+    --text-dim:       #93a2c0;
+    --text-light:     #241d10;
+    --text-light-dim: #6f6146;
+    --contact:        #ff6b3d;      /* warm accent: contact points, CTAs */
+    --field:          #7c85ff;      /* cool accent: gradients / level sets */
 
     --bg: var(--ink);
     --bg-raised: var(--surface);
@@ -1078,7 +1078,7 @@ SolveResult out = pair.solve(g);
     var ctx = heroCanvas.getContext("2d");
     var scalePx = w / (2 * HERO_EXTENT);
     var fgDim = getAccent("--fg-dim") || "#a7b1ae";
-    var accent = getAccent("--contact") || "#d9662b";
+    var accent = getAccent("--contact") || "#ff6b3d";
 
     ctx.clearRect(0, 0, w, h);
 
@@ -1442,7 +1442,7 @@ SolveResult out = pair.solve(g);
     var param = paramValues[currentPrim];
     var phiFn = prim.phi;
 
-    var accentRgb = hexToRgb(getAccent("--contact") || "#d9662b");
+    var accentRgb = hexToRgb(getAccent("--contact") || "#ff6b3d");
     var Ldir = vnorm([0.5, 0.8, 0.4]);
     var img = ctx.createImageData(w, h);
     var d = img.data;
@@ -1617,8 +1617,8 @@ SolveResult out = pair.solve(g);
     ctx.clearRect(0, 0, w, h);
 
     var fgDim = getAccent("--fg-dim") || "#a7b1ae";
-    var accent = getAccent("--contact") || "#d9662b";
-    var field = getAccent("--field") || "#3e9c97";
+    var accent = getAccent("--contact") || "#ff6b3d";
+    var field = getAccent("--field") || "#7c85ff";
 
     ctx.save();
     ctx.setLineDash([4, 4]);
@@ -1934,9 +1934,9 @@ SolveResult out = pair.solve(g);
     var frameRadius = Math.max(boundsA.rout, distB + boundsB.rout, 0.8);
     var cam = buildCamera(frameRadius, solveOrbit.azim, solveOrbit.elev);
 
-    var accentRgb = hexToRgb(getAccent("--contact") || "#d9662b");   // body A: orangish
-    var fieldRgb = hexToRgb(getAccent("--field") || "#3e9c97");     // body B: bluish
-    var solutionRgb = hexToRgb(getAccent("--graphite-soft") || "#8a969c"); // solution/iteration overlay: gray
+    var accentRgb = hexToRgb(getAccent("--contact") || "#ff6b3d");   // body A: orangish
+    var fieldRgb = hexToRgb(getAccent("--field") || "#7c85ff");     // body B: bluish
+    var solutionRgb = hexToRgb(getAccent("--graphite-soft") || "#9c8d74"); // solution/iteration overlay: gray
 
     var meshA = getMeshWasm(solveKeyA);
     var meshB = getMeshWasm(solveKeyB);
@@ -2120,8 +2120,8 @@ SolveResult out = pair.solve(g);
   var grid = document.getElementById("shapeGrid");
   function renderShapeGrid() {
     grid.innerHTML = "";
-    var accentRgb = hexToRgb(getAccent("--contact") || "#d9662b");
-    var fieldRgb = hexToRgb(getAccent("--field") || "#3e9c97");
+    var accentRgb = hexToRgb(getAccent("--contact") || "#ff6b3d");
+    var fieldRgb = hexToRgb(getAccent("--field") || "#7c85ff");
     GALLERY_SHAPES.forEach(function (s) {
       var card = document.createElement("div");
       card.className = "shape-card";
