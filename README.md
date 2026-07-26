@@ -8,6 +8,10 @@ iDCOL is a differentiable contact kinematic framework for strictly convex contac
 
 **Paper:** [Collision Detection with Analytical Derivatives of Contact Kinematics](https://www.arxiv.org/abs/2602.03250)
 
+**Website:** [gvsrobotics.github.io/iDCOL](https://gvsrobotics.github.io/iDCOL)
+
+**Julia port:** a Julia implementation is available at [iDCOL.jl](https://github.com/GVSRobotics/iDCOL.jl)
+
 It provides:
 
 * robust collision detection for strictly convex implicit shapes,
