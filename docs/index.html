@@ -422,17 +422,27 @@
   .video-card { display: flex; flex-direction: column; gap: 8px; }
   .video-thumb {
     position: relative;
+    display: block;
     aspect-ratio: 16 / 9;
-    background: var(--bg-raised-2);
+    background: var(--bg-raised-2) center / cover no-repeat;
     border: 1px solid var(--border);
     overflow: hidden;
+    cursor: pointer;
+  }
+  .video-thumb iframe {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    border: 0;
   }
   .video-thumb::before {
     content: "";
     position: absolute; inset: 0;
     background-image: repeating-linear-gradient(135deg, var(--border) 0, var(--border) 1px, transparent 1px, transparent 14px);
     opacity: 0.55;
+    transition: opacity 0.15s ease;
   }
+  .video-thumb[style*="background-image"]::before { opacity: 0.12; }
+  .video-thumb:hover::before { opacity: 0; }
   .video-play {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -444,7 +454,9 @@
     color: var(--fg-dim);
     font-size: 0.85rem;
     padding-left: 3px; /* optically center the triangle glyph */
+    transition: transform 0.15s ease;
   }
+  .video-thumb:hover .video-play { transform: translate(-50%, -50%) scale(1.08); }
   .video-category {
     font-family: var(--font-mono);
     font-size: 0.72rem;
@@ -862,7 +874,7 @@
     </div>
     <div class="video-grid">
       <div class="video-card">
-        <div class="video-thumb"><div class="video-play">&#9654;</div></div>
+        <div class="video-thumb" data-yt="A-hM9a4oeLE" role="button" tabindex="0" aria-label="Play: Quadrotor" style="background-image:url('https://img.youtube.com/vi/A-hM9a4oeLE/hqdefault.jpg')"><div class="video-play">&#9654;</div></div>
         <span class="video-category">Kinematic path planning</span>
         <span class="video-title">Quadrotor</span>
         <p class="video-desc">
@@ -871,7 +883,7 @@
         </p>
       </div>
       <div class="video-card">
-        <div class="video-thumb"><div class="video-play">&#9654;</div></div>
+        <div class="video-thumb" data-yt="HRscx1bMZH8" role="button" tabindex="0" aria-label="Play: Serial robot (UR10)" style="background-image:url('https://img.youtube.com/vi/HRscx1bMZH8/hqdefault.jpg')"><div class="video-play">&#9654;</div></div>
         <span class="video-category">Kinematic path planning</span>
         <span class="video-title">Serial robot (UR10)</span>
         <p class="video-desc">
@@ -880,7 +892,7 @@
         </p>
       </div>
       <div class="video-card">
-        <div class="video-thumb"><div class="video-play">&#9654;</div></div>
+        <div class="video-thumb" data-yt="HWFZ-GEnErE" role="button" tabindex="0" aria-label="Play: Multibody collision" style="background-image:url('https://img.youtube.com/vi/HWFZ-GEnErE/hqdefault.jpg')"><div class="video-play">&#9654;</div></div>
         <span class="video-category">Contact physics</span>
         <span class="video-title">Multibody collision</span>
         <p class="video-desc">
@@ -889,7 +901,7 @@
         </p>
       </div>
       <div class="video-card">
-        <div class="video-thumb"><div class="video-play">&#9654;</div></div>
+        <div class="video-thumb" data-yt="UtbTaJMc2bU" role="button" tabindex="0" aria-label="Play: Soft manipulator" style="background-image:url('https://img.youtube.com/vi/UtbTaJMc2bU/hqdefault.jpg')"><div class="video-play">&#9654;</div></div>
         <span class="video-category">Contact physics</span>
         <span class="video-title">Soft manipulator</span>
         <p class="video-desc">
@@ -2179,6 +2191,28 @@ SolveResult out = pair.solve(g);
   }
   wireCopy("copyCode", "codeBlock");
   wireCopy("copyCite", "citeBlock");
+
+  /* ---------- inline video playback ---------- */
+  function playInline(thumb) {
+    var id = thumb.getAttribute("data-yt");
+    if (!id) return;
+    var iframe = document.createElement("iframe");
+    iframe.src = "https://www.youtube.com/embed/" + id + "?autoplay=1&rel=0";
+    iframe.title = thumb.getAttribute("aria-label") || "YouTube video";
+    iframe.allow = "autoplay; encrypted-media; picture-in-picture";
+    iframe.allowFullscreen = true;
+    thumb.replaceChildren(iframe);
+    thumb.removeAttribute("role");
+    thumb.removeAttribute("tabindex");
+    thumb.style.backgroundImage = "none";
+    thumb.style.cursor = "default";
+  }
+  document.querySelectorAll(".video-thumb[data-yt]").forEach(function (thumb) {
+    thumb.addEventListener("click", function () { playInline(thumb); });
+    thumb.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); playInline(thumb); }
+    });
+  });
 })();
 </script>
 </body>
