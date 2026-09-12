@@ -226,7 +226,7 @@ usable but evolving; APIs and interfaces may change without notice.
 The code is provided as-is for research and experimentation. If you use this code in your research, please cite:
 
 ```bibtex
-@article{mathew2026collisiondetectionanalyticalderivatives,
+@article{mathew2026iDCOL,
       title={Collision Detection With Analytical Derivatives of Contact Kinematics},
       author={Anup Teejo Mathew and Anees Peringal and Daniele Caradonna and Frederic Boyer and Federico Renda},
       journal={IEEE Robotics and Automation Letters},
